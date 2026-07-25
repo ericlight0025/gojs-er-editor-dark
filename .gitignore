@@ -1,0 +1,26 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Internal Development & Planning Files
+plan.md
+*.plan
+*.scratch
+
+# Node / Dependencies (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary & Local Backup Files
+*.tmp
+*.bak
+*.local

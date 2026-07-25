@@ -1,0 +1,122 @@
+{
+  "class": "GraphLinksModel",
+  "modelData": {
+    "title": "ER Model",
+    "version": "1.0"
+  },
+  "linkKeyProperty": "key",
+  "linkFromPortIdProperty": "fromPort",
+  "linkToPortIdProperty": "toPort",
+  "copiesArrays": true,
+  "copiesArrayObjects": true,
+  "nodeDataArray": [
+    {
+      "key": "CUSTOMER",
+      "name": "CUSTOMER",
+      "displayName": "客戶主檔",
+      "loc": "120 110",
+      "columns": [
+        {
+          "name": "CUSTOMER_ID",
+          "displayName": "客戶編號",
+          "dataType": "NUMBER(12)",
+          "keyType": "BK"
+        },
+        {
+          "name": "CUSTOMER_NAME",
+          "displayName": "客戶姓名",
+          "dataType": "VARCHAR2(100)",
+          "keyType": ""
+        },
+        {
+          "name": "BIRTH_DATE",
+          "displayName": "出生日期",
+          "dataType": "DATE",
+          "keyType": ""
+        }
+      ]
+    },
+    {
+      "key": "POLICY",
+      "name": "POLICY",
+      "displayName": "保單主檔",
+      "loc": "560 300",
+      "columns": [
+        {
+          "name": "POLICY_NO",
+          "displayName": "保單號碼",
+          "dataType": "VARCHAR2(20)",
+          "keyType": "BK"
+        },
+        {
+          "name": "VERSION_NO",
+          "displayName": "版本號",
+          "dataType": "NUMBER(4)",
+          "keyType": "BK"
+        },
+        {
+          "name": "CUSTOMER_ID",
+          "displayName": "客戶編號",
+          "dataType": "NUMBER(12)",
+          "keyType": "LR"
+        },
+        {
+          "name": "POLICY_STATUS",
+          "displayName": "保單狀態",
+          "dataType": "CHAR(2)",
+          "keyType": ""
+        }
+      ]
+    },
+    {
+      "key": "PAYMENT",
+      "name": "PAYMENT",
+      "displayName": "繳款紀錄",
+      "loc": "1000 110",
+      "columns": [
+        {
+          "name": "PAYMENT_NO",
+          "displayName": "繳款編號",
+          "dataType": "VARCHAR2(24)",
+          "keyType": "BK"
+        },
+        {
+          "name": "POLICY_NO",
+          "displayName": "保單號碼",
+          "dataType": "VARCHAR2(20)",
+          "keyType": "LR"
+        },
+        {
+          "name": "POLICY_VERSION_NO",
+          "displayName": "保單版本號",
+          "dataType": "NUMBER(4)",
+          "keyType": "LR"
+        },
+        {
+          "name": "AMOUNT",
+          "displayName": "繳款金額",
+          "dataType": "NUMBER(14,2)",
+          "keyType": ""
+        }
+      ]
+    }
+  ],
+  "linkDataArray": [
+    {
+      "key": "LR_POLICY_CUSTOMER",
+      "from": "POLICY",
+      "fromPort": "CUSTOMER_ID",
+      "to": "CUSTOMER",
+      "toPort": "CUSTOMER_ID",
+      "label": "CUSTOMER_ID"
+    },
+    {
+      "key": "LR_PAYMENT_POLICY",
+      "from": "PAYMENT",
+      "fromPort": "POLICY_NO",
+      "to": "POLICY",
+      "toPort": "POLICY_NO",
+      "label": "POLICY_NO + VERSION_NO"
+    }
+  ]
+}

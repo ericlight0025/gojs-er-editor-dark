@@ -1,0 +1,232 @@
+{
+  "class": "GraphLinksModel",
+  "modelData": {
+    "title": "E-Commerce ER System Test Model",
+    "version": "2.0"
+  },
+  "linkKeyProperty": "key",
+  "linkFromPortIdProperty": "fromPort",
+  "linkToPortIdProperty": "toPort",
+  "copiesArrays": true,
+  "copiesArrayObjects": true,
+  "nodeDataArray": [
+    {
+      "key": "CUSTOMER",
+      "name": "CUSTOMER",
+      "displayName": "會員客戶主檔",
+      "loc": "100 120",
+      "columns": [
+        {
+          "name": "CUSTOMER_ID",
+          "displayName": "會員編號",
+          "dataType": "NUMBER(12)",
+          "keyType": "PK"
+        },
+        {
+          "name": "EMAIL",
+          "displayName": "電子信箱",
+          "dataType": "VARCHAR2(150)",
+          "keyType": "BK"
+        },
+        {
+          "name": "CUSTOMER_NAME",
+          "displayName": "客戶姓名",
+          "dataType": "VARCHAR2(100)",
+          "keyType": ""
+        },
+        {
+          "name": "PHONE",
+          "displayName": "聯絡電話",
+          "dataType": "VARCHAR2(30)",
+          "keyType": ""
+        },
+        {
+          "name": "CREATED_AT",
+          "displayName": "註冊時間",
+          "dataType": "TIMESTAMP",
+          "keyType": ""
+        }
+      ]
+    },
+    {
+      "key": "ORDERS",
+      "name": "ORDERS",
+      "displayName": "訂單主檔",
+      "loc": "550 120",
+      "columns": [
+        {
+          "name": "ORDER_ID",
+          "displayName": "訂單編號",
+          "dataType": "VARCHAR2(30)",
+          "keyType": "PK"
+        },
+        {
+          "name": "CUSTOMER_ID",
+          "displayName": "會員編號",
+          "dataType": "NUMBER(12)",
+          "keyType": "FK"
+        },
+        {
+          "name": "ORDER_DATE",
+          "displayName": "訂購日期",
+          "dataType": "DATE",
+          "keyType": ""
+        },
+        {
+          "name": "TOTAL_AMOUNT",
+          "displayName": "訂單總額",
+          "dataType": "NUMBER(12,2)",
+          "keyType": ""
+        },
+        {
+          "name": "STATUS",
+          "displayName": "訂單狀態",
+          "dataType": "VARCHAR2(20)",
+          "keyType": ""
+        }
+      ]
+    },
+    {
+      "key": "ORDER_ITEM",
+      "name": "ORDER_ITEM",
+      "displayName": "訂單明細檔",
+      "loc": "550 480",
+      "columns": [
+        {
+          "name": "ITEM_ID",
+          "displayName": "項次編號",
+          "dataType": "NUMBER(10)",
+          "keyType": "PK"
+        },
+        {
+          "name": "ORDER_ID",
+          "displayName": "訂單編號",
+          "dataType": "VARCHAR2(30)",
+          "keyType": "FK"
+        },
+        {
+          "name": "PRODUCT_ID",
+          "displayName": "商品編號",
+          "dataType": "VARCHAR2(20)",
+          "keyType": "FK"
+        },
+        {
+          "name": "QUANTITY",
+          "displayName": "訂購數量",
+          "dataType": "NUMBER(6)",
+          "keyType": ""
+        },
+        {
+          "name": "UNIT_PRICE",
+          "displayName": "成交單價",
+          "dataType": "NUMBER(10,2)",
+          "keyType": ""
+        }
+      ]
+    },
+    {
+      "key": "PRODUCT",
+      "name": "PRODUCT",
+      "displayName": "商品資訊檔",
+      "loc": "100 480",
+      "columns": [
+        {
+          "name": "PRODUCT_ID",
+          "displayName": "商品編號",
+          "dataType": "VARCHAR2(20)",
+          "keyType": "PK"
+        },
+        {
+          "name": "PRODUCT_NAME",
+          "displayName": "商品名稱",
+          "dataType": "VARCHAR2(200)",
+          "keyType": "BK"
+        },
+        {
+          "name": "PRICE",
+          "displayName": "定價",
+          "dataType": "NUMBER(10,2)",
+          "keyType": ""
+        },
+        {
+          "name": "STOCK_QTY",
+          "displayName": "庫存數量",
+          "dataType": "NUMBER(8)",
+          "keyType": ""
+        }
+      ]
+    },
+    {
+      "key": "PAYMENT_LOG",
+      "name": "PAYMENT_LOG",
+      "displayName": "金流支付記錄",
+      "loc": "1000 120",
+      "columns": [
+        {
+          "name": "PAYMENT_ID",
+          "displayName": "支付流水號",
+          "dataType": "VARCHAR2(40)",
+          "keyType": "PK"
+        },
+        {
+          "name": "ORDER_ID",
+          "displayName": "訂單編號",
+          "dataType": "VARCHAR2(30)",
+          "keyType": "LR"
+        },
+        {
+          "name": "PAY_TYPE",
+          "displayName": "支付管道",
+          "dataType": "VARCHAR2(20)",
+          "keyType": ""
+        },
+        {
+          "name": "PAY_STATUS",
+          "displayName": "支付狀態",
+          "dataType": "VARCHAR2(20)",
+          "keyType": ""
+        },
+        {
+          "name": "PAID_AT",
+          "displayName": "付款時間",
+          "dataType": "TIMESTAMP",
+          "keyType": ""
+        }
+      ]
+    }
+  ],
+  "linkDataArray": [
+    {
+      "key": "LR_ORDERS_CUSTOMER",
+      "from": "ORDERS",
+      "fromPort": "CUSTOMER_ID",
+      "to": "CUSTOMER",
+      "toPort": "CUSTOMER_ID",
+      "label": "CUSTOMER_ID (FK)"
+    },
+    {
+      "key": "LR_ORDER_ITEM_ORDERS",
+      "from": "ORDER_ITEM",
+      "fromPort": "ORDER_ID",
+      "to": "ORDERS",
+      "toPort": "ORDER_ID",
+      "label": "ORDER_ID (FK)"
+    },
+    {
+      "key": "LR_ORDER_ITEM_PRODUCT",
+      "from": "ORDER_ITEM",
+      "fromPort": "PRODUCT_ID",
+      "to": "PRODUCT",
+      "toPort": "PRODUCT_ID",
+      "label": "PRODUCT_ID (FK)"
+    },
+    {
+      "key": "LR_PAYMENT_ORDERS",
+      "from": "PAYMENT_LOG",
+      "fromPort": "ORDER_ID",
+      "to": "ORDERS",
+      "toPort": "ORDER_ID",
+      "label": "ORDER_ID (LR)"
+    }
+  ]
+}

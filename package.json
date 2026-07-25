@@ -1,0 +1,26 @@
+{
+  "name": "gojs-er-diagram-editor",
+  "version": "3.0.0",
+  "description": "Modern dark-themed ER Diagram Editor built with GoJS, Vanilla JavaScript, and CSS.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "gojs",
+    "er-diagram",
+    "er-editor",
+    "database",
+    "schema-editor",
+    "sql-generator",
+    "dark-mode",
+    "entity-relationship"
+  ],
+  "author": "ericlight0025",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ericlight0025/gojs-er-editor-dark.git"
+  }
+}

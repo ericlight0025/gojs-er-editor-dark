@@ -1,0 +1,2322 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoJS ER Editor Dark V3 Ultimate</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- GoJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/gojs"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="logo">ER</div>
+
+      <div class="title">
+        <h1>GoJS ER Editor</h1>
+        <p>資料表 CRUD · 關聯線管理 · SQL 語法產出 · 高清圖表匯出</p>
+      </div>
+
+      <span id="status" class="status">準備中</span>
+
+      <div class="toolbar">
+        <div class="search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input
+            id="searchInput"
+            class="input search-input"
+            placeholder="搜尋 Table 或欄位 (可多字)..."
+            type="text"
+          />
+        </div>
+        <span id="searchResultCount" class="search-count"></span>
+
+        <select id="routingStyleSelect" class="select" style="width: auto; height: 35px; padding: 0 8px; font-size: 11px;" title="切換連線路由樣式">
+          <option value="AvoidsNodes">路線：自動避障</option>
+          <option value="Orthogonal">路線：直角折線</option>
+          <option value="Normal">路線：貝茲曲線</option>
+        </select>
+
+        <select id="themeSelect" class="select" style="width: auto; height: 35px; padding: 0 8px; font-size: 11px;" title="切換主題配色">
+          <option value="dark">🌙 暗黑 Mode</option>
+          <option value="light">☀️ 明亮 Mode</option>
+          <option value="midnight">🍇 極光 Mode</option>
+        </select>
+
+        <button id="fitButton" class="button secondary" type="button" title="全圖置中">
+          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          置中
+        </button>
+
+        <button id="autoLayoutButton" class="button secondary" type="button" title="自動排列">
+          <svg class="btn-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          排列
+        </button>
+
+        <button id="undoLayoutButton" class="button secondary" type="button" title="復原排列">
+          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          復原
+        </button>
+
+        <button id="exportPngButton" class="button secondary" type="button" title="下載 PNG 圖片">
+          <svg class="btn-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          PNG
+        </button>
+
+        <button id="exportSvgButton" class="button secondary" type="button" title="下載 SVG 向量圖">
+          <svg class="btn-icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          SVG
+        </button>
+
+        <button id="printButton" class="button secondary" type="button" title="列印 HTML 圖表 (Ctrl+P)">
+          <svg class="btn-icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          列印
+        </button>
+
+        <button id="saveBrowserButton" class="button secondary" type="button" title="儲存瀏覽器 (Ctrl+S)">
+          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          儲存
+        </button>
+
+        <label class="button secondary file-button" title="載入 JSON">
+          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          載入
+          <input id="fileInput" accept=".json,application/json" type="file" />
+        </label>
+
+        <button id="downloadButton" class="button" type="button" title="下載 JSON">
+          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          JSON
+        </button>
+
+        <button id="toggleSidebarTopBtn" class="button secondary" type="button" title="收合／展開右側邊欄">
+          <svg class="btn-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+          側邊欄
+        </button>
+
+        <button id="resetButton" class="button danger" type="button" title="重設 Demo">
+          <svg class="btn-icon" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          重設
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="diagram-panel">
+        <button id="toggleTopbarBtn" class="toggle-topbar-btn" title="收合上方工具列" type="button">
+          <svg id="toggleTopbarIcon" class="btn-icon" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+
+        <button id="toggleInspectorBtn" class="toggle-inspector-btn" title="收合右側邊欄" type="button">
+          <svg id="toggleIcon" class="btn-icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <button id="toggleOverviewBtn" class="toggle-overview-btn" title="切換小地圖全景導航" type="button">
+          <svg class="btn-icon" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        </button>
+
+        <div id="diagram"></div>
+
+        <div id="overview" class="overview collapsed">
+          <div class="overview-header">
+            <span>小地圖全景</span>
+            <button id="closeOverviewBtn" class="overview-close-btn" title="縮回小地圖" type="button">×</button>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><b class="badge badge-bk">BK</b> Business Key</span>
+          <span><b class="badge badge-lr">LR</b> Logical Relation</span>
+          <span>雙擊文字編輯 · Delete 鍵刪除 Table · Ctrl+F 搜尋 · Ctrl+S 保存</span>
+        </div>
+
+        <div id="fallback" class="fallback">
+          <div class="fallback-card">
+            <h2>GoJS 載入失敗</h2>
+            <p>
+              本頁透過 jsDelivr CDN 載入 GoJS。請確認網路沒有封鎖
+              cdn.jsdelivr.net。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="inspector">
+        <div class="tabs">
+          <button class="tab active" data-tab="table" type="button">
+            Table 編輯
+          </button>
+
+          <button class="tab" data-tab="relation" type="button">
+            Relation 編輯
+          </button>
+
+          <button class="tab" data-tab="sql" type="button">
+            SQL 腳本
+          </button>
+
+          <button class="tab" data-tab="json" type="button">
+            JSON 內容
+          </button>
+        </div>
+
+        <div class="inspector-intro">
+          點選左側 Table 或切換頁籤管理內容。修改將即時同步更新圖面與 JSON。
+        </div>
+
+        <section id="tablePanel" class="panel active">
+          <div class="table-actions">
+            <button id="addTableButton" class="button secondary" type="button">
+              <svg class="btn-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              新增 Table
+            </button>
+            <button id="copyTableButton" class="button secondary" type="button">
+              <svg class="btn-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              複製 Table
+            </button>
+            <button id="deleteTableButton" class="button danger" type="button">
+              <svg class="btn-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              刪除 Table
+            </button>
+          </div>
+          <div id="tableEditor"></div>
+        </section>
+
+        <section id="relationPanel" class="panel">
+          <div id="relationEditor"></div>
+        </section>
+
+        <section id="sqlPanel" class="json-panel">
+          <div style="padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px;">
+            <label style="font-size: 11px; color: var(--muted); font-weight: 600;">SQL 語法：</label>
+            <select id="sqlDialectSelect" class="select" style="width: auto; height: 30px; padding: 0 8px; font-size: 11px;">
+              <option value="oracle">Oracle SQL</option>
+              <option value="postgresql">PostgreSQL</option>
+              <option value="mysql">MySQL / MariaDB</option>
+            </select>
+            <button id="refreshSqlBtn" class="button secondary" type="button" style="height: 30px; padding: 0 10px; font-size: 10px; margin-left: auto;">重新產生</button>
+          </div>
+          <textarea
+            id="sqlEditor"
+            class="json-editor"
+            spellcheck="false"
+            readonly
+          ></textarea>
+
+          <div class="json-actions">
+            <button id="copySqlButton" class="button" type="button">
+              複製 SQL
+            </button>
+            <button id="downloadSqlButton" class="button secondary" type="button">
+              下載 .sql
+            </button>
+          </div>
+        </section>
+
+        <section id="jsonPanel" class="json-panel">
+          <textarea
+            id="jsonEditor"
+            class="json-editor"
+            spellcheck="false"
+          ></textarea>
+
+          <div class="json-actions">
+            <button id="applyJsonButton" class="button" type="button">
+              套用 JSON
+            </button>
+
+            <button id="copyJsonButton" class="button secondary" type="button">
+              複製 JSON
+            </button>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    "use strict";
+
+    if (typeof go === "undefined") {
+      document.getElementById("fallback").style.display = "grid";
+      throw new Error("GoJS CDN 載入失敗。");
+    }
+
+    const DEFAULT_MODEL = {"class": "GraphLinksModel", "modelData": {"title": "ER Model", "version": "1.0"}, "linkKeyProperty": "key", "linkFromPortIdProperty": "fromPort", "linkToPortIdProperty": "toPort", "copiesArrays": true, "copiesArrayObjects": true, "nodeDataArray": [{"key": "CUSTOMER", "name": "CUSTOMER", "displayName": "客戶主檔", "loc": "120 110", "columns": [{"name": "CUSTOMER_ID", "displayName": "客戶編號", "dataType": "NUMBER(12)", "keyType": "BK"}, {"name": "CUSTOMER_NAME", "displayName": "客戶姓名", "dataType": "VARCHAR2(100)", "keyType": ""}, {"name": "BIRTH_DATE", "displayName": "出生日期", "dataType": "DATE", "keyType": ""}]}, {"key": "POLICY", "name": "POLICY", "displayName": "保單主檔", "loc": "560 300", "columns": [{"name": "POLICY_NO", "displayName": "保單號碼", "dataType": "VARCHAR2(20)", "keyType": "BK"}, {"name": "VERSION_NO", "displayName": "版本號", "dataType": "NUMBER(4)", "keyType": "BK"}, {"name": "CUSTOMER_ID", "displayName": "客戶編號", "dataType": "NUMBER(12)", "keyType": "LR"}, {"name": "POLICY_STATUS", "displayName": "保單狀態", "dataType": "CHAR(2)", "keyType": ""}]}, {"key": "PAYMENT", "name": "PAYMENT", "displayName": "繳款紀錄", "loc": "1000 110", "columns": [{"name": "PAYMENT_NO", "displayName": "繳款編號", "dataType": "VARCHAR2(24)", "keyType": "BK"}, {"name": "POLICY_NO", "displayName": "保單號碼", "dataType": "VARCHAR2(20)", "keyType": "LR"}, {"name": "POLICY_VERSION_NO", "displayName": "保單版本號", "dataType": "NUMBER(4)", "keyType": "LR"}, {"name": "AMOUNT", "displayName": "繳款金額", "dataType": "NUMBER(14,2)", "keyType": ""}]}], "linkDataArray": [{"key": "LR_POLICY_CUSTOMER", "from": "POLICY", "fromPort": "CUSTOMER_ID", "to": "CUSTOMER", "toPort": "CUSTOMER_ID", "label": "CUSTOMER_ID"}, {"key": "LR_PAYMENT_POLICY", "from": "PAYMENT", "fromPort": "POLICY_NO", "to": "POLICY", "toPort": "POLICY_NO", "label": "POLICY_NO + VERSION_NO"}]};
+    const STORAGE_KEY = "gojs-er-editor-dark-v3";
+    const $ = go.GraphObject.make;
+
+    const statusElement = document.getElementById("status");
+    const tableEditorElement = document.getElementById("tableEditor");
+    const relationEditorElement = document.getElementById("relationEditor");
+    const jsonEditorElement = document.getElementById("jsonEditor");
+    const sqlEditorElement = document.getElementById("sqlEditor");
+    const searchInputElement = document.getElementById("searchInput");
+    const searchResultCountElement = document.getElementById("searchResultCount");
+
+    let selectedNodeData = null;
+    let editingRelationKey = null;
+    let previousLocations = null;
+    let suppressAutoSave = false;
+
+    /**
+     * 顯示狀態文字。
+     */
+    function setStatus(message, isError) {
+      statusElement.textContent = message;
+      statusElement.classList.toggle("error", Boolean(isError));
+    }
+
+    /**
+     * Key Badge 顏色。
+     */
+    function badgeFill(keyType) {
+      if (keyType === "BK") {
+        return "rgba(88,166,255,0.18)";
+      }
+
+      if (keyType === "LR") {
+        return "rgba(188,140,255,0.18)";
+      }
+
+      return "transparent";
+    }
+
+    function badgeStroke(keyType) {
+      if (keyType === "BK") {
+        return "#58a6ff";
+      }
+
+      if (keyType === "LR") {
+        return "#bc8cff";
+      }
+
+      return "transparent";
+    }
+
+    /**
+     * 建立 Diagram。
+     */
+    const diagram = $(go.Diagram, "diagram", {
+      initialContentAlignment: go.Spot.Center,
+      initialAutoScale: go.AutoScale.Uniform,
+      padding: 70,
+      "undoManager.isEnabled": true,
+      "toolManager.mouseWheelBehavior": go.WheelMode.Zoom
+    });
+
+    diagram.div.style.background = "#07101d";
+
+    /**
+     * 建立 Overview 小地圖。
+     */
+    const overview = $(go.Overview, "overview", {
+      observed: diagram,
+      contentAlignment: go.Spot.Center
+    });
+    overview.box.elt(0).stroke = "#58a6ff";
+    overview.box.elt(0).fill = "rgba(88, 166, 255, 0.12)";
+
+    /**
+     * 欄位列樣板。
+     */
+    const columnTemplate =
+      $(go.Panel, "Table",
+        {
+          stretch: go.Stretch.Horizontal,
+          minSize: new go.Size(350, 46),
+          fromSpot: go.Spot.Right,
+          toSpot: go.Spot.Left,
+          fromLinkable: true,
+          toLinkable: true,
+          cursor: "pointer"
+        },
+
+        new go.Binding("portId", "name"),
+
+        $(go.Shape, "Rectangle",
+          {
+            name: "COL_BG",
+            column: 0,
+            columnSpan: 3,
+            stretch: go.Stretch.Fill,
+            stroke: null,
+            fill: "transparent"
+          },
+          new go.Binding("fill", "keyType", function(keyType) {
+            return keyType
+              ? "rgba(88,166,255,0.055)"
+              : "transparent";
+          })
+        ),
+
+        $(go.Panel, "Auto",
+          {
+            column: 0,
+            width: 35,
+            height: 21,
+            margin: new go.Margin(7, 7, 7, 11)
+          },
+
+          $(go.Shape, "RoundedRectangle",
+            {
+              parameter1: 4,
+              strokeWidth: 1
+            },
+            new go.Binding("fill", "keyType", badgeFill),
+            new go.Binding("stroke", "keyType", badgeStroke)
+          ),
+
+          $(go.TextBlock,
+            {
+              editable: true,
+              font: "700 9px sans-serif",
+              stroke: "#e8eef8"
+            },
+            new go.Binding("text", "keyType").makeTwoWay()
+          )
+        ),
+
+        $(go.Panel, "Vertical",
+          {
+            column: 1,
+            alignment: go.Spot.Left,
+            margin: new go.Margin(6, 6, 6, 0)
+          },
+
+          $(go.TextBlock,
+            {
+              alignment: go.Spot.Left,
+              font: "700 11px sans-serif",
+              stroke: "#edf4fc"
+            },
+            new go.Binding("text", "name")
+          ),
+
+          $(go.TextBlock,
+            {
+              editable: true,
+              alignment: go.Spot.Left,
+              margin: new go.Margin(2, 0, 0, 0),
+              font: "10px sans-serif",
+              stroke: "#8ca3c0"
+            },
+            new go.Binding("text", "displayName").makeTwoWay()
+          )
+        ),
+
+        $(go.TextBlock,
+          {
+            editable: true,
+            column: 2,
+            alignment: go.Spot.Right,
+            margin: new go.Margin(0, 12, 0, 8),
+            font: "9px 'Fira Code', Consolas, monospace",
+            stroke: "#768ba5"
+          },
+          new go.Binding("text", "dataType").makeTwoWay()
+        )
+      );
+
+    /**
+     * Table 節點樣板。
+     */
+    diagram.nodeTemplate =
+      $(go.Node, "Auto",
+        {
+          locationSpot: go.Spot.Center,
+          shadowVisible: true,
+          shadowColor: "rgba(0,0,0,0.5)",
+          shadowBlur: 20,
+          shadowOffset: new go.Point(0, 10)
+        },
+
+        new go.Binding(
+          "location",
+          "loc",
+          go.Point.parse
+        ).makeTwoWay(go.Point.stringify),
+
+        $(go.Shape, "RoundedRectangle",
+          {
+            parameter1: 12,
+            fill: "#0e1a2c",
+            stroke: "#233955",
+            strokeWidth: 1.2
+          },
+          new go.Binding("stroke", "isSelected", function(selected) {
+            return selected ? "#58a6ff" : "#233955";
+          }).ofObject()
+        ),
+
+        $(go.Panel, "Vertical",
+          {
+            minSize: new go.Size(370, NaN),
+            stretch: go.Stretch.Horizontal
+          },
+
+          $(go.Panel, "Table",
+            {
+              stretch: go.Stretch.Horizontal,
+              padding: new go.Margin(12, 14, 11, 14),
+              background: "#162842"
+            },
+
+            $(go.Panel, "Vertical",
+              {
+                column: 0,
+                alignment: go.Spot.Left
+              },
+
+              $(go.TextBlock,
+                {
+                  editable: true,
+                  alignment: go.Spot.Left,
+                  font: "800 14px sans-serif",
+                  stroke: "#f2f7fd"
+                },
+                new go.Binding("text", "name").makeTwoWay()
+              ),
+
+              $(go.TextBlock,
+                {
+                  editable: true,
+                  alignment: go.Spot.Left,
+                  margin: new go.Margin(3, 0, 0, 0),
+                  font: "10px sans-serif",
+                  stroke: "#9bb1cd"
+                },
+                new go.Binding("text", "displayName").makeTwoWay()
+              )
+            ),
+
+            $(go.Panel, "Auto",
+              {
+                column: 1,
+                alignment: go.Spot.Right
+              },
+
+              $(go.Shape, "RoundedRectangle",
+                {
+                  parameter1: 8,
+                  fill: "rgba(86,211,100,0.13)",
+                  stroke: "rgba(86,211,100,0.34)"
+                }
+              ),
+
+              $(go.TextBlock,
+                {
+                  margin: new go.Margin(4, 7),
+                  font: "700 9px sans-serif",
+                  stroke: "#7ee787"
+                },
+                new go.Binding("text", "columns", function(columns) {
+                  return (columns ? columns.length : 0) + " COL";
+                })
+              )
+            )
+          ),
+
+          $(go.Panel, "Vertical",
+            {
+              name: "COLUMNS_PANEL",
+              stretch: go.Stretch.Horizontal,
+              itemTemplate: columnTemplate
+            },
+            new go.Binding("itemArray", "columns")
+          ),
+
+          $(go.Panel, "Horizontal",
+            {
+              stretch: go.Stretch.Horizontal,
+              padding: new go.Margin(8, 12),
+              background: "#081220"
+            },
+
+            $(go.TextBlock,
+              {
+                text: "雙擊文字編輯 · 右側可新增、刪除與改名",
+                font: "9px sans-serif",
+                stroke: "#6a819e"
+              }
+            )
+          )
+        )
+      );
+
+    /**
+     * 關聯線樣板。
+     */
+    diagram.linkTemplate =
+      $(go.Link,
+        {
+          routing: go.Routing.AvoidsNodes,
+          curve: go.Curve.JumpOver,
+          corner: 10,
+          fromEndSegmentLength: 30,
+          toEndSegmentLength: 30,
+          relinkableFrom: true,
+          relinkableTo: true,
+          reshapable: true
+        },
+
+        new go.Binding("points", "points").makeTwoWay(),
+
+        $(go.Shape,
+          {
+            stroke: "#bc8cff",
+            strokeWidth: 2,
+            strokeDashArray: [8, 6]
+          }
+        ),
+
+        $(go.Shape,
+          {
+            toArrow: "Standard",
+            fill: "#bc8cff",
+            stroke: null,
+            scale: 0.9
+          }
+        ),
+
+        $(go.Panel, "Auto",
+          {
+            segmentFraction: 0.5
+          },
+
+          $(go.Shape, "RoundedRectangle",
+            {
+              parameter1: 5,
+              fill: "#0e1a2c",
+              stroke: "#384f70"
+            }
+          ),
+
+          $(go.TextBlock,
+            {
+              editable: true,
+              margin: new go.Margin(5, 8),
+              font: "9px 'Fira Code', Consolas, monospace",
+              stroke: "#d2a8ff"
+            },
+            new go.Binding("text", "label").makeTwoWay()
+          )
+        )
+      );
+
+    /**
+     * 設定 GraphLinksModel 必要屬性。
+     */
+    function configureModel(model) {
+      if (!(model instanceof go.GraphLinksModel)) {
+        throw new Error("JSON 必須是 GraphLinksModel。");
+      }
+
+      model.linkKeyProperty = "key";
+      model.linkFromPortIdProperty = "fromPort";
+      model.linkToPortIdProperty = "toPort";
+      model.copiesArrays = true;
+      model.copiesArrayObjects = true;
+
+      return model;
+    }
+
+    /**
+     * 將 JSON 載入 Diagram。
+     */
+    function loadJson(jsonText, fitAfterLoad) {
+      suppressAutoSave = true;
+
+      try {
+        const model = configureModel(go.Model.fromJson(jsonText));
+        diagram.model = model;
+        selectedNodeData = null;
+        editingRelationKey = null;
+
+        if (fitAfterLoad) {
+          window.setTimeout(function() {
+            diagram.zoomToFit();
+          }, 40);
+        }
+
+        updateJsonEditor();
+        updateSqlEditor();
+        renderTableEditor();
+        renderRelationEditor();
+        applySearchFilter();
+        saveToBrowser(false);
+        setStatus("JSON 載入成功", false);
+      } finally {
+        suppressAutoSave = false;
+      }
+    }
+
+    /**
+     * 取得目前完整 JSON。
+     */
+    function getCurrentJson() {
+      return diagram.model.toJson();
+    }
+
+    /**
+     * 更新右側 JSON 編輯器。
+     */
+    function updateJsonEditor() {
+      try {
+        jsonEditorElement.value = JSON.stringify(
+          JSON.parse(getCurrentJson()),
+          null,
+          2
+        );
+      } catch (error) {
+        jsonEditorElement.value = getCurrentJson();
+      }
+    }
+
+    /**
+     * 保存至瀏覽器 localStorage。
+     */
+    function saveToBrowser(showMessage) {
+      localStorage.setItem(STORAGE_KEY, getCurrentJson());
+
+      if (showMessage) {
+        setStatus("已儲存至瀏覽器", false);
+      }
+    }
+
+    /**
+     * 下載目前 JSON。
+     */
+    function downloadJson() {
+      const jsonText = JSON.stringify(
+        JSON.parse(getCurrentJson()),
+        null,
+        2
+      );
+
+      const blob = new Blob(
+        [jsonText],
+        { type: "application/json;charset=utf-8" }
+      );
+
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "er-model-current.json";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+
+      setStatus("已下載目前 JSON", false);
+    }
+
+    /**
+     * 匯出 PNG 圖片。
+     */
+    function exportPng() {
+      diagram.makeImageData({
+        background: "#07101d",
+        scale: 2,
+        returnType: "blob",
+        callback: function(blob) {
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.download = "er-diagram.png";
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(url);
+          setStatus("已下載 PNG 圖片", false);
+        }
+      });
+    }
+
+    /**
+     * 匯出 SVG 向量圖。
+     */
+    function exportSvg() {
+      const svg = diagram.makeSvg({
+        background: "#07101d",
+        scale: 1
+      });
+      const svgStr = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "er-diagram.svg";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      setStatus("已下載 SVG 向量圖", false);
+    }
+
+    /**
+     * 產生 SQL DDL 腳本。
+     */
+    function generateSql(dialect) {
+      dialect = dialect || document.getElementById("sqlDialectSelect").value || "oracle";
+      const nodes = diagram.model.nodeDataArray || [];
+      const links = diagram.model.linkDataArray || [];
+
+      let sql = `-- ==========================================\n`;
+      sql += `-- Generated by GoJS ER Editor Dark V3\n`;
+      sql += `-- Dialect: ${dialect.toUpperCase()}\n`;
+      sql += `-- Total Tables: ${nodes.length} | Relations: ${links.length}\n`;
+      sql += `-- Date: ${new Date().toLocaleString()}\n`;
+      sql += `-- ==========================================\n\n`;
+
+      nodes.forEach(function(node) {
+        const tableName = node.key;
+        const columns = Array.isArray(node.columns) ? node.columns : [];
+
+        sql += `-- ------------------------------------------\n`;
+        sql += `-- Table: ${tableName} (${node.displayName || node.name})\n`;
+        sql += `-- ------------------------------------------\n`;
+
+        if (dialect === "oracle") {
+          sql += `CREATE TABLE ${tableName} (\n`;
+        } else {
+          sql += `CREATE TABLE IF NOT EXISTS ${tableName} (\n`;
+        }
+
+        const colLines = [];
+        const pkCols = [];
+
+        columns.forEach(function(col) {
+          let dataType = col.dataType || "VARCHAR2(100)";
+          if (dialect === "postgresql") {
+            dataType = dataType.replace(/VARCHAR2/i, "VARCHAR").replace(/NUMBER/i, "NUMERIC");
+          } else if (dialect === "mysql") {
+            dataType = dataType.replace(/VARCHAR2/i, "VARCHAR").replace(/NUMBER/i, "DECIMAL");
+          }
+
+          let line = `  ${col.name.padEnd(22)} ${dataType}`;
+
+          if (col.keyType === "PK" || col.keyType === "BK") {
+            line += ` NOT NULL`;
+          }
+
+          if (col.keyType === "PK") {
+            pkCols.push(col.name);
+          }
+
+          if (col.displayName) {
+            line += ` COMMENT '${col.displayName}'`;
+          }
+
+          colLines.push(line);
+        });
+
+        if (pkCols.length > 0) {
+          colLines.push(`  CONSTRAINT PK_${tableName} PRIMARY KEY (${pkCols.join(", ")})`);
+        }
+
+        sql += colLines.join(",\n") + "\n);\n\n";
+      });
+
+      if (links.length > 0) {
+        sql += `-- ------------------------------------------\n`;
+        sql += `-- Foreign Key Constraints & Logical Relations\n`;
+        sql += `-- ------------------------------------------\n`;
+        links.forEach(function(link) {
+          if (link.from && link.fromPort && link.to && link.toPort) {
+            const fkName = (link.key || `FK_${link.from}_${link.to}`).replace(/[^A-Za-z0-9_]/g, "_");
+            sql += `ALTER TABLE ${link.from}\n`;
+            sql += `  ADD CONSTRAINT ${fkName}\n`;
+            sql += `  FOREIGN KEY (${link.fromPort})\n`;
+            sql += `  REFERENCES ${link.to} (${link.toPort});\n\n`;
+          }
+        });
+      }
+
+      return sql;
+    }
+
+    /**
+     * 更新 SQL 編輯器內容。
+     */
+    function updateSqlEditor() {
+      if (sqlEditorElement) {
+        sqlEditorElement.value = generateSql();
+      }
+    }
+
+    /**
+     * 選取的 Table。
+     */
+    function getSelectedNodeData() {
+      const selectedNode = diagram.selection.first();
+
+      if (selectedNode instanceof go.Node) {
+        return selectedNode.data;
+      }
+
+      return selectedNodeData;
+    }
+
+    /**
+     * 轉義 HTML。
+     */
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // ==========================================
+    // Table CRUD 操作
+    // ==========================================
+
+    /**
+     * 新增 Table。
+     */
+    function addTable() {
+      const existingKeys = new Set(
+        diagram.model.nodeDataArray.map(function(node) {
+          return String(node.key).toUpperCase();
+        })
+      );
+
+      let counter = 1;
+      let newKey = "NEW_TABLE_" + counter;
+
+      while (existingKeys.has(newKey)) {
+        counter += 1;
+        newKey = "NEW_TABLE_" + counter;
+      }
+
+      const newTable = {
+        key: newKey,
+        name: newKey,
+        displayName: "新資料表",
+        loc: "500 300",
+        columns: [
+          {
+            name: "NEW_COLUMN_1",
+            displayName: "新欄位",
+            dataType: "VARCHAR2(100)",
+            keyType: ""
+          }
+        ]
+      };
+
+      diagram.model.commit(function(model) {
+        model.addNodeData(newTable);
+      }, "add table");
+
+      const node = diagram.findNodeForKey(newKey);
+      if (node) {
+        diagram.select(node);
+      }
+
+      setStatus("已新增 Table：" + newKey, false);
+    }
+
+    /**
+     * 複製目前選取的 Table。
+     */
+    function copyTable() {
+      const selectedData = getSelectedNodeData();
+
+      if (!selectedData) {
+        setStatus("請先選取要複製的 Table", true);
+        return;
+      }
+
+      const existingKeys = new Set(
+        diagram.model.nodeDataArray.map(function(node) {
+          return String(node.key).toUpperCase();
+        })
+      );
+
+      const baseKey = selectedData.key + "_COPY";
+      let newKey = baseKey;
+      let counter = 2;
+
+      while (existingKeys.has(newKey)) {
+        newKey = baseKey + "_" + counter;
+        counter += 1;
+      }
+
+      let newLoc = "500 300";
+      if (selectedData.loc) {
+        const point = go.Point.parse(selectedData.loc);
+        newLoc = go.Point.stringify(new go.Point(point.x + 40, point.y + 40));
+      }
+
+      const copiedColumns = (selectedData.columns || []).map(function(column) {
+        return {
+          name: column.name,
+          displayName: column.displayName,
+          dataType: column.dataType,
+          keyType: column.keyType
+        };
+      });
+
+      const copiedTable = {
+        key: newKey,
+        name: newKey,
+        displayName: selectedData.displayName ? (selectedData.displayName + " (副本)") : "新資料表",
+        loc: newLoc,
+        columns: copiedColumns
+      };
+
+      diagram.model.commit(function(model) {
+        model.addNodeData(copiedTable);
+      }, "copy table");
+
+      const node = diagram.findNodeForKey(newKey);
+      if (node) {
+        diagram.select(node);
+      }
+
+      setStatus("已複製 Table：" + newKey, false);
+    }
+
+    /**
+     * 刪除目前選取的 Table。
+     */
+    function deleteTable() {
+      const selectedData = getSelectedNodeData();
+
+      if (!selectedData) {
+        setStatus("請先選取要刪除的 Table", true);
+        return;
+      }
+
+      const relatedLinks = diagram.model.linkDataArray.filter(function(link) {
+        return link.from === selectedData.key || link.to === selectedData.key;
+      });
+
+      const message = relatedLinks.length > 0
+        ? "此 Table 目前有 " + relatedLinks.length + " 條關聯線，刪除將一併移除。確定刪除 Table " + selectedData.key + " 嗎？"
+        : "確定刪除 Table " + selectedData.key + " 嗎？";
+
+      if (!window.confirm(message)) {
+        return;
+      }
+
+      diagram.model.commit(function(model) {
+        relatedLinks.forEach(function(link) {
+          model.removeLinkData(link);
+        });
+        model.removeNodeData(selectedData);
+      }, "delete table");
+
+      selectedNodeData = null;
+      renderTableEditor();
+      renderRelationEditor();
+      setStatus("已刪除 Table", false);
+    }
+
+    /**
+     * 調整欄位順序 (上移/下移)。
+     */
+    function moveColumn(nodeData, index, direction) {
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= nodeData.columns.length) {
+        return;
+      }
+
+      diagram.model.commit(function(model) {
+        const item = nodeData.columns[index];
+        model.removeArrayItem(nodeData.columns, index);
+        model.insertArrayItem(nodeData.columns, newIndex, item);
+      }, "move column");
+    }
+
+    /**
+     * 重新繪製右側 Table 編輯器。
+     */
+    function renderTableEditor() {
+      selectedNodeData = getSelectedNodeData();
+
+      const copyBtn = document.getElementById("copyTableButton");
+      const deleteBtn = document.getElementById("deleteTableButton");
+
+      if (copyBtn) copyBtn.disabled = !selectedNodeData;
+      if (deleteBtn) deleteBtn.disabled = !selectedNodeData;
+
+      if (!selectedNodeData) {
+        tableEditorElement.innerHTML =
+          '<div class="empty">請點選上方「新增 Table」或點選左側 Diagram 中的 Table。</div>';
+        return;
+      }
+
+      const columns = Array.isArray(selectedNodeData.columns)
+        ? selectedNodeData.columns
+        : [];
+
+      const columnsHtml = columns.map(function(column, index) {
+        return `
+          <div class="column-editor" data-column-index="${index}">
+            <div class="field">
+              <label>Key</label>
+              <select
+                class="select"
+                data-action="keyType"
+                data-column-index="${index}"
+              >
+                <option value="" ${column.keyType === "" ? "selected" : ""}>－</option>
+                <option value="BK" ${column.keyType === "BK" ? "selected" : ""}>BK</option>
+                <option value="LR" ${column.keyType === "LR" ? "selected" : ""}>LR</option>
+                <option value="PK" ${column.keyType === "PK" ? "selected" : ""}>PK</option>
+                <option value="FK" ${column.keyType === "FK" ? "selected" : ""}>FK</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>欄位名稱</label>
+              <input
+                class="input"
+                data-action="columnName"
+                data-column-index="${index}"
+                value="${escapeHtml(column.name)}"
+              />
+            </div>
+
+            <div class="field">
+              <label>中文名稱</label>
+              <input
+                class="input"
+                data-action="columnDisplayName"
+                data-column-index="${index}"
+                value="${escapeHtml(column.displayName)}"
+              />
+            </div>
+
+            <div class="field">
+              <label>資料型別</label>
+              <input
+                class="input"
+                data-action="dataType"
+                data-column-index="${index}"
+                value="${escapeHtml(column.dataType)}"
+              />
+            </div>
+
+            <button
+              class="icon-button move-btn"
+              data-action="moveUp"
+              data-column-index="${index}"
+              title="上移欄位"
+              type="button"
+              ${index === 0 ? "disabled" : ""}
+            >
+              ▲
+            </button>
+
+            <button
+              class="icon-button move-btn"
+              data-action="moveDown"
+              data-column-index="${index}"
+              title="下移欄位"
+              type="button"
+              ${index === columns.length - 1 ? "disabled" : ""}
+            >
+              ▼
+            </button>
+
+            <button
+              class="icon-button"
+              data-action="deleteColumn"
+              data-column-index="${index}"
+              title="刪除欄位"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      tableEditorElement.innerHTML = `
+        <div class="form-section">
+          <div class="section-header">
+            <h2>Table 設定</h2>
+            <span>${escapeHtml(selectedNodeData.loc)}</span>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label>Table ID</label>
+              <input
+                id="tableIdInput"
+                class="input"
+                value="${escapeHtml(selectedNodeData.key)}"
+              />
+            </div>
+
+            <div class="field">
+              <label>顯示名稱</label>
+              <input
+                id="tableNameInput"
+                class="input"
+                value="${escapeHtml(selectedNodeData.name)}"
+              />
+            </div>
+
+            <div class="field full">
+              <label>中文名稱</label>
+              <input
+                id="tableDisplayNameInput"
+                class="input"
+                value="${escapeHtml(selectedNodeData.displayName)}"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <h3>Columns 清單</h3>
+            <button
+              id="addColumnButton"
+              class="button secondary"
+              type="button"
+            >
+              新增欄位
+            </button>
+          </div>
+
+          <div class="columns">
+            ${columnsHtml || '<div class="empty">目前沒有欄位。</div>'}
+          </div>
+        </div>
+      `;
+
+      bindTableEditorEvents();
+    }
+
+    /**
+     * Table ID 改名。
+     */
+    function renameTable(nodeData, newKey) {
+      const normalizedKey = newKey.trim().toUpperCase();
+
+      if (!normalizedKey) {
+        throw new Error("Table ID 不可為空。");
+      }
+
+      const existing = diagram.model.findNodeDataForKey(normalizedKey);
+
+      if (existing && existing !== nodeData) {
+        throw new Error("Table ID 已存在：" + normalizedKey);
+      }
+
+      diagram.model.commit(function(model) {
+        model.setKeyForNodeData(nodeData, normalizedKey);
+        model.set(nodeData, "name", normalizedKey);
+      }, "rename table");
+    }
+
+    /**
+     * 欄位改名。
+     */
+    function renameColumn(nodeData, columnData, newName) {
+      const normalizedName = newName.trim().toUpperCase();
+
+      if (!normalizedName) {
+        throw new Error("欄位名稱不可為空。");
+      }
+
+      const duplicated = nodeData.columns.some(function(column) {
+        return column !== columnData && column.name === normalizedName;
+      });
+
+      if (duplicated) {
+        throw new Error("欄位名稱已存在：" + normalizedName);
+      }
+
+      const oldName = columnData.name;
+
+      diagram.model.commit(function(model) {
+        model.set(columnData, "name", normalizedName);
+
+        model.linkDataArray.forEach(function(linkData) {
+          if (
+            linkData.from === nodeData.key &&
+            linkData.fromPort === oldName
+          ) {
+            model.setFromPortIdForLinkData(linkData, normalizedName);
+          }
+
+          if (
+            linkData.to === nodeData.key &&
+            linkData.toPort === oldName
+          ) {
+            model.setToPortIdForLinkData(linkData, normalizedName);
+          }
+        });
+      }, "rename column");
+    }
+
+    /**
+     * 綁定右側 Table 表單事件。
+     */
+    function bindTableEditorEvents() {
+      const nodeData = selectedNodeData;
+
+      if (!nodeData) {
+        return;
+      }
+
+      const tableIdInput = document.getElementById("tableIdInput");
+      const tableNameInput = document.getElementById("tableNameInput");
+      const tableDisplayNameInput = document.getElementById(
+        "tableDisplayNameInput"
+      );
+      const addColumnButton = document.getElementById("addColumnButton");
+
+      tableIdInput.addEventListener("change", function(event) {
+        try {
+          renameTable(nodeData, event.target.value);
+          renderTableEditor();
+          renderRelationEditor();
+        } catch (error) {
+          setStatus(error.message, true);
+          renderTableEditor();
+        }
+      });
+
+      tableNameInput.addEventListener("change", function(event) {
+        diagram.model.commit(function(model) {
+          model.set(nodeData, "name", event.target.value.trim());
+        }, "edit table name");
+      });
+
+      tableDisplayNameInput.addEventListener(
+        "change",
+        function(event) {
+          diagram.model.commit(function(model) {
+            model.set(
+              nodeData,
+              "displayName",
+              event.target.value.trim()
+            );
+          }, "edit table display name");
+        }
+      );
+
+      addColumnButton.addEventListener("click", function() {
+        const usedNames = new Set(
+          nodeData.columns.map(function(column) {
+            return column.name;
+          })
+        );
+
+        let counter = nodeData.columns.length + 1;
+        let columnName = "NEW_COLUMN_" + counter;
+
+        while (usedNames.has(columnName)) {
+          counter += 1;
+          columnName = "NEW_COLUMN_" + counter;
+        }
+
+        diagram.model.commit(function(model) {
+          model.addArrayItem(nodeData.columns, {
+            name: columnName,
+            displayName: "新欄位",
+            dataType: "VARCHAR2(100)",
+            keyType: ""
+          });
+        }, "add column");
+      });
+
+      tableEditorElement
+        .querySelectorAll("[data-action]")
+        .forEach(function(element) {
+          const action = element.dataset.action;
+          const index = Number(element.dataset.columnIndex);
+
+          if (action === "deleteColumn") {
+            element.addEventListener("click", function() {
+              deleteColumn(nodeData, index);
+            });
+            return;
+          }
+
+          if (action === "moveUp") {
+            element.addEventListener("click", function() {
+              moveColumn(nodeData, index, -1);
+            });
+            return;
+          }
+
+          if (action === "moveDown") {
+            element.addEventListener("click", function() {
+              moveColumn(nodeData, index, 1);
+            });
+            return;
+          }
+
+          element.addEventListener("change", function(event) {
+            const columnData = nodeData.columns[index];
+
+            if (!columnData) {
+              return;
+            }
+
+            try {
+              if (action === "columnName") {
+                renameColumn(
+                  nodeData,
+                  columnData,
+                  event.target.value
+                );
+                renderTableEditor();
+                renderRelationEditor();
+                return;
+              }
+
+              const propertyMap = {
+                keyType: "keyType",
+                columnDisplayName: "displayName",
+                dataType: "dataType"
+              };
+
+              const propertyName = propertyMap[action];
+
+              diagram.model.commit(function(model) {
+                model.set(
+                  columnData,
+                  propertyName,
+                  event.target.value.trim()
+                );
+              }, "edit column");
+            } catch (error) {
+              setStatus(error.message, true);
+              renderTableEditor();
+            }
+          });
+        });
+    }
+
+    /**
+     * 刪除欄位與使用該欄位的關聯。
+     */
+    function deleteColumn(nodeData, index) {
+      const columnData = nodeData.columns[index];
+
+      if (!columnData) {
+        return;
+      }
+
+      const relatedLinks = diagram.model.linkDataArray.filter(
+        function(linkData) {
+          return (
+            (
+              linkData.from === nodeData.key &&
+              linkData.fromPort === columnData.name
+            ) ||
+            (
+              linkData.to === nodeData.key &&
+              linkData.toPort === columnData.name
+            )
+          );
+        }
+      );
+
+      const message = relatedLinks.length > 0
+        ? "此欄位有 " + relatedLinks.length +
+          " 條關聯，刪除欄位時會一併刪除。確定嗎？"
+        : "確定刪除欄位 " + columnData.name + "？";
+
+      if (!window.confirm(message)) {
+        return;
+      }
+
+      diagram.model.commit(function(model) {
+        relatedLinks.forEach(function(linkData) {
+          model.removeLinkData(linkData);
+        });
+
+        model.removeArrayItem(nodeData.columns, index);
+      }, "delete column");
+
+      renderRelationEditor();
+    }
+
+    // ==========================================
+    // Relation CRUD 操作
+    // ==========================================
+
+    /**
+     * 重新繪製 Relation 編輯器。
+     */
+    function renderRelationEditor() {
+      const links = diagram.model.linkDataArray || [];
+      const nodes = diagram.model.nodeDataArray || [];
+
+      const listHtml = links.map(function(link) {
+        const isEditing = (editingRelationKey === link.key);
+        return `
+          <div class="relation-item" style="${isEditing ? 'border-color: var(--blue); background: #12253f;' : ''}">
+            <div class="relation-info">
+              <span class="relation-key">${escapeHtml(link.key || "無 Key")}</span>
+              <span class="relation-detail">
+                ${escapeHtml(link.from)}.${escapeHtml(link.fromPort)} → ${escapeHtml(link.to)}.${escapeHtml(link.toPort)}
+              </span>
+              ${link.label ? `<span class="relation-detail" style="color: var(--orange)">Label: ${escapeHtml(link.label)}</span>` : ''}
+            </div>
+            <div class="relation-actions">
+              <button class="button secondary" data-action="editRelation" data-key="${escapeHtml(link.key)}" type="button">編輯</button>
+              <button class="button danger" data-action="deleteRelation" data-key="${escapeHtml(link.key)}" type="button">刪除</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const editingLink = editingRelationKey
+        ? links.find(function(l) { return l.key === editingRelationKey; })
+        : null;
+
+      const defaultFromNode = nodes[0] ? nodes[0].key : "";
+      const defaultToNode = nodes[1] ? nodes[1].key : defaultFromNode;
+
+      const formFromKey = editingLink ? editingLink.from : defaultFromNode;
+      const formToKey = editingLink ? editingLink.to : defaultToNode;
+
+      const fromNodeObj = nodes.find(function(n) { return n.key === formFromKey; });
+      const toNodeObj = nodes.find(function(n) { return n.key === formToKey; });
+
+      const fromColumns = (fromNodeObj && Array.isArray(fromNodeObj.columns)) ? fromNodeObj.columns : [];
+      const toColumns = (toNodeObj && Array.isArray(toNodeObj.columns)) ? toNodeObj.columns : [];
+
+      const formFromPort = editingLink ? editingLink.fromPort : (fromColumns[0] ? fromColumns[0].name : "");
+      const formToPort = editingLink ? editingLink.toPort : (toColumns[0] ? toColumns[0].name : "");
+      const formLabel = editingLink ? (editingLink.label || "") : "";
+      const formRelationKey = editingLink ? editingLink.key : ("LR_" + (formFromKey || "TABLE1") + "_" + (formToKey || "TABLE2"));
+
+      const tableOptionsHtml = nodes.map(function(n) {
+        return `<option value="${escapeHtml(n.key)}">${escapeHtml(n.key)} (${escapeHtml(n.displayName || n.name)})</option>`;
+      }).join("");
+
+      relationEditorElement.innerHTML = `
+        <div class="form-section">
+          <div class="section-header">
+            <h2>Relation 清單</h2>
+            <span>共 ${links.length} 條關聯</span>
+          </div>
+          <div class="relation-list">
+            ${listHtml || '<div class="empty">目前沒有 Relation 關聯。</div>'}
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <h3>${editingLink ? '編輯 Relation' : '新增 Relation'}</h3>
+            ${editingLink ? '<button id="cancelEditRelationBtn" class="button secondary" type="button" style="height: 26px; font-size: 9px;">取消編輯</button>' : ''}
+          </div>
+
+          <div class="field-grid">
+            <div class="field full">
+              <label>Relation ID</label>
+              <input id="relKeyInput" class="input" value="${escapeHtml(formRelationKey)}" />
+            </div>
+
+            <div class="field">
+              <label>來源 Table</label>
+              <select id="relFromSelect" class="select">${tableOptionsHtml}</select>
+            </div>
+
+            <div class="field">
+              <label>來源欄位</label>
+              <select id="relFromPortSelect" class="select"></select>
+            </div>
+
+            <div class="field">
+              <label>目標 Table</label>
+              <select id="relToSelect" class="select">${tableOptionsHtml}</select>
+            </div>
+
+            <div class="field">
+              <label>目標欄位</label>
+              <select id="relToPortSelect" class="select"></select>
+            </div>
+
+            <div class="field full">
+              <label>顯示文字 (Label)</label>
+              <input id="relLabelInput" class="input" value="${escapeHtml(formLabel)}" placeholder="例如：CUSTOMER_ID" />
+            </div>
+
+            <div class="field full" style="margin-top: 6px;">
+              <button id="saveRelationBtn" class="button" type="button">
+                ${editingLink ? '更新 Relation' : '新增 Relation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const relFromSelect = document.getElementById("relFromSelect");
+      const relToSelect = document.getElementById("relToSelect");
+      const relFromPortSelect = document.getElementById("relFromPortSelect");
+      const relToPortSelect = document.getElementById("relToPortSelect");
+
+      if (relFromSelect) relFromSelect.value = formFromKey;
+      if (relToSelect) relToSelect.value = formToKey;
+
+      function updatePortDropdowns() {
+        const selFromKey = relFromSelect.value;
+        const selToKey = relToSelect.value;
+
+        const fNode = nodes.find(function(n) { return n.key === selFromKey; });
+        const tNode = nodes.find(function(n) { return n.key === selToKey; });
+
+        const fCols = (fNode && Array.isArray(fNode.columns)) ? fNode.columns : [];
+        const tCols = (tNode && Array.isArray(tNode.columns)) ? tNode.columns : [];
+
+        relFromPortSelect.innerHTML = fCols.map(function(c) {
+          return `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${escapeHtml(c.displayName)})</option>`;
+        }).join("") || '<option value="">(無欄位)</option>';
+
+        relToPortSelect.innerHTML = tCols.map(function(c) {
+          return `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${escapeHtml(c.displayName)})</option>`;
+        }).join("") || '<option value="">(無欄位)</option>';
+      }
+
+      updatePortDropdowns();
+
+      if (relFromPortSelect) relFromPortSelect.value = formFromPort;
+      if (relToPortSelect) relToPortSelect.value = formToPort;
+
+      relFromSelect.addEventListener("change", function() {
+        updatePortDropdowns();
+        autoGenRelKey();
+      });
+
+      relToSelect.addEventListener("change", function() {
+        updatePortDropdowns();
+        autoGenRelKey();
+      });
+
+      function autoGenRelKey() {
+        if (!editingLink) {
+          const relKeyInput = document.getElementById("relKeyInput");
+          if (relKeyInput) {
+            relKeyInput.value = "LR_" + relFromSelect.value + "_" + relToSelect.value;
+          }
+        }
+      }
+
+      document.getElementById("saveRelationBtn").addEventListener("click", function() {
+        saveRelation(editingRelationKey);
+      });
+
+      if (editingLink) {
+        document.getElementById("cancelEditRelationBtn").addEventListener("click", function() {
+          editingRelationKey = null;
+          renderRelationEditor();
+        });
+      }
+
+      relationEditorElement.querySelectorAll("[data-action]").forEach(function(btn) {
+        const action = btn.dataset.action;
+        const key = btn.dataset.key;
+
+        if (action === "editRelation") {
+          btn.addEventListener("click", function() {
+            editingRelationKey = key;
+            renderRelationEditor();
+          });
+        } else if (action === "deleteRelation") {
+          btn.addEventListener("click", function() {
+            deleteRelation(key);
+          });
+        }
+      });
+    }
+
+    /**
+     * 儲存 Relation。
+     */
+    function saveRelation(targetKey) {
+      const relKeyInput = document.getElementById("relKeyInput");
+      const relFromSelect = document.getElementById("relFromSelect");
+      const relFromPortSelect = document.getElementById("relFromPortSelect");
+      const relToSelect = document.getElementById("relToSelect");
+      const relToPortSelect = document.getElementById("relToPortSelect");
+      const relLabelInput = document.getElementById("relLabelInput");
+
+      const key = relKeyInput.value.trim().toUpperCase();
+      const from = relFromSelect.value;
+      const fromPort = relFromPortSelect.value;
+      const to = relToSelect.value;
+      const toPort = relToPortSelect.value;
+      const label = relLabelInput.value.trim();
+
+      if (!key) {
+        setStatus("Relation ID 不可為空", true);
+        return;
+      }
+
+      if (!from || !fromPort || !to || !toPort) {
+        setStatus("請完整選取來源與目標 Table 及欄位", true);
+        return;
+      }
+
+      if (from === to && fromPort === toPort) {
+        setStatus("來源欄位與目標欄位不可完全相同", true);
+        return;
+      }
+
+      const existingLinks = diagram.model.linkDataArray || [];
+
+      const duplicated = existingLinks.some(function(l) {
+        return l.key === key && l.key !== targetKey;
+      });
+
+      if (duplicated) {
+        setStatus("Relation ID 已存在：" + key, true);
+        return;
+      }
+
+      diagram.model.commit(function(model) {
+        if (targetKey) {
+          const linkData = model.findLinkDataForKey(targetKey);
+          if (linkData) {
+            if (targetKey !== key) {
+              model.set(linkData, "key", key);
+            }
+            model.setFromKeyForLinkData(linkData, from);
+            model.setFromPortIdForLinkData(linkData, fromPort);
+            model.setToKeyForLinkData(linkData, to);
+            model.setToPortIdForLinkData(linkData, toPort);
+            model.set(linkData, "label", label || fromPort);
+          }
+        } else {
+          model.addLinkData({
+            key: key,
+            from: from,
+            fromPort: fromPort,
+            to: to,
+            toPort: toPort,
+            label: label || (fromPort === toPort ? fromPort : (fromPort + " → " + toPort))
+          });
+        }
+      }, "save relation");
+
+      editingRelationKey = null;
+      renderRelationEditor();
+      setStatus("Relation 儲存成功", false);
+    }
+
+    /**
+     * 刪除 Relation。
+     */
+    function deleteRelation(key) {
+      if (!window.confirm("確定刪除 Relation " + key + " 嗎？")) {
+        return;
+      }
+
+      diagram.model.commit(function(model) {
+        const linkData = model.findLinkDataForKey(key);
+        if (linkData) {
+          model.removeLinkData(linkData);
+        }
+      }, "delete relation");
+
+      if (editingRelationKey === key) {
+        editingRelationKey = null;
+      }
+
+      renderRelationEditor();
+      setStatus("已刪除 Relation", false);
+    }
+
+    // ==========================================
+    // 搜尋功能 (Table & Columns Search)
+    // ==========================================
+
+    /**
+     * 執行 Table 與欄位搜尋過濾 (支援多關鍵字以空白、逗號、豎線分隔)。
+     */
+    function applySearchFilter() {
+      const rawInput = searchInputElement.value.trim().toLowerCase();
+
+      if (!rawInput) {
+        searchResultCountElement.textContent = "";
+        diagram.nodes.each(function(node) {
+          node.opacity = 1.0;
+          resetColumnHighlights(node);
+        });
+        return;
+      }
+
+      const keywords = rawInput.split(/[\s,|+]+/).filter(Boolean);
+
+      if (keywords.length === 0) {
+        searchResultCountElement.textContent = "";
+        diagram.nodes.each(function(node) {
+          node.opacity = 1.0;
+          resetColumnHighlights(node);
+        });
+        return;
+      }
+
+      let matchedCount = 0;
+      let lastMatchedNode = null;
+
+      diagram.nodes.each(function(node) {
+        const data = node.data;
+        if (!data) return;
+
+        let nodeMatched = false;
+
+        function textMatchesAny(text) {
+          if (!text) return false;
+          const lowerText = String(text).toLowerCase();
+          return keywords.some(function(kw) {
+            return lowerText.includes(kw);
+          });
+        }
+
+        if (textMatchesAny(data.key) || textMatchesAny(data.name) || textMatchesAny(data.displayName)) {
+          nodeMatched = true;
+        }
+
+        (diagram.model.linkDataArray || []).forEach(function(link) {
+          if (link.from === data.key || link.to === data.key) {
+            if (textMatchesAny(link.key) || textMatchesAny(link.label)) {
+              nodeMatched = true;
+            }
+          }
+        });
+
+        const columns = Array.isArray(data.columns) ? data.columns : [];
+        const columnsPanel = node.findObject("COLUMNS_PANEL");
+
+        if (columnsPanel) {
+          let idx = 0;
+          const it = columnsPanel.elements;
+          while (it.next()) {
+            const colPanel = it.value;
+            const column = columns[idx];
+            if (colPanel && column) {
+              const colMatched = textMatchesAny(column.name) || textMatchesAny(column.displayName);
+
+              if (colMatched) {
+                nodeMatched = true;
+              }
+
+              const bgShape = colPanel.findObject("COL_BG");
+              if (bgShape) {
+                if (colMatched) {
+                  bgShape.fill = "rgba(227, 179, 65, 0.4)";
+                } else {
+                  bgShape.fill = column.keyType ? "rgba(88,166,255,0.055)" : "transparent";
+                }
+              }
+            }
+            idx += 1;
+          }
+        }
+
+        if (nodeMatched) {
+          node.opacity = 1.0;
+          matchedCount += 1;
+          lastMatchedNode = node;
+        } else {
+          node.opacity = 0.22;
+        }
+      });
+
+      searchResultCountElement.textContent = "找到 " + matchedCount + " 張 Table";
+
+      if (matchedCount === 1 && lastMatchedNode) {
+        diagram.centerRect(lastMatchedNode.actualBounds);
+      }
+    }
+
+    /**
+     * 重設欄位高亮背景。
+     */
+    function resetColumnHighlights(node) {
+      const data = node.data;
+      if (!data || !Array.isArray(data.columns)) return;
+
+      const columnsPanel = node.findObject("COLUMNS_PANEL");
+      if (!columnsPanel) return;
+
+      let idx = 0;
+      const it = columnsPanel.elements;
+      while (it.next()) {
+        const colPanel = it.value;
+        const column = data.columns[idx];
+        if (colPanel && column) {
+          const bgShape = colPanel.findObject("COL_BG");
+          if (bgShape) {
+            bgShape.fill = column.keyType ? "rgba(88,166,255,0.055)" : "transparent";
+          }
+        }
+        idx += 1;
+      }
+    }
+
+    // ==========================================
+    // 排列與復原 (Auto Layout & Undo Layout)
+    // ==========================================
+
+    /**
+     * 執行自動排列。
+     */
+    function autoLayout() {
+      previousLocations = {};
+      diagram.nodes.each(function(node) {
+        if (node.data && node.data.key) {
+          previousLocations[node.data.key] = go.Point.stringify(node.location);
+        }
+      });
+
+      const layout = $(go.LayeredDigraphLayout, {
+        direction: 0,
+        layerSpacing: 120,
+        columnSpacing: 70,
+        setsPortSpots: false
+      });
+
+      diagram.startTransaction("auto layout");
+      layout.doLayout(diagram);
+
+      diagram.nodes.each(function(node) {
+        if (node.data) {
+          diagram.model.set(node.data, "loc", go.Point.stringify(node.location));
+        }
+      });
+      diagram.commitTransaction("auto layout");
+
+      setStatus("已完成自動排列", false);
+    }
+
+    /**
+     * 復原排列。
+     */
+    function undoLayout() {
+      if (!previousLocations) {
+        setStatus("沒有可復原的排列紀錄", true);
+        return;
+      }
+
+      diagram.startTransaction("undo layout");
+      diagram.nodes.each(function(node) {
+        if (node.data && previousLocations[node.data.key]) {
+          const locStr = previousLocations[node.data.key];
+          node.location = go.Point.parse(locStr);
+          diagram.model.set(node.data, "loc", locStr);
+        }
+      });
+      diagram.commitTransaction("undo layout");
+
+      setStatus("已復原至自動排列前的位置", false);
+    }
+
+    /**
+     * Model 異動監聽。
+     */
+    diagram.addModelChangedListener(function(event) {
+      if (!event.isTransactionFinished || suppressAutoSave) {
+        return;
+      }
+
+      saveToBrowser(false);
+      updateJsonEditor();
+      updateSqlEditor();
+      renderTableEditor();
+      renderRelationEditor();
+      applySearchFilter();
+      setStatus("已自動保存目前位置與內容", false);
+    });
+
+    diagram.addDiagramListener(
+      "ChangedSelection",
+      function() {
+        renderTableEditor();
+      }
+    );
+
+    /**
+     * 頁籤切換。
+     */
+    document.querySelectorAll(".tab").forEach(function(tabButton) {
+      tabButton.addEventListener("click", function() {
+        const target = tabButton.dataset.tab;
+
+        document.querySelectorAll(".tab").forEach(function(button) {
+          button.classList.toggle(
+            "active",
+            button.dataset.tab === target
+          );
+        });
+
+        document.getElementById("tablePanel").classList.toggle(
+          "active",
+          target === "table"
+        );
+
+        document.getElementById("relationPanel").classList.toggle(
+          "active",
+          target === "relation"
+        );
+
+        document.getElementById("sqlPanel").classList.toggle(
+          "active",
+          target === "sql"
+        );
+
+        document.getElementById("jsonPanel").classList.toggle(
+          "active",
+          target === "json"
+        );
+
+        if (target === "relation") {
+          renderRelationEditor();
+        } else if (target === "sql") {
+          updateSqlEditor();
+        } else if (target === "json") {
+          updateJsonEditor();
+        }
+      });
+    });
+
+    // 綁定按鈕與事件
+    document.getElementById("addTableButton").addEventListener("click", addTable);
+    document.getElementById("copyTableButton").addEventListener("click", copyTable);
+    document.getElementById("deleteTableButton").addEventListener("click", deleteTable);
+
+    searchInputElement.addEventListener("input", applySearchFilter);
+
+    document.getElementById("routingStyleSelect").addEventListener("change", function(event) {
+      const val = event.target.value;
+      diagram.startTransaction("change link routing");
+      if (val === "Normal" || val === "bezier") {
+        diagram.linkTemplate.routing = go.Routing.Normal;
+        diagram.linkTemplate.curve = go.Curve.Bezier;
+      } else if (val === "Orthogonal" || val === "orthogonal") {
+        diagram.linkTemplate.routing = go.Routing.Orthogonal;
+        diagram.linkTemplate.curve = go.Curve.None;
+      } else {
+        diagram.linkTemplate.routing = go.Routing.AvoidsNodes;
+        diagram.linkTemplate.curve = go.Curve.JumpOver;
+      }
+      diagram.links.each(function(link) {
+        link.invalidateRoute();
+      });
+      diagram.commitTransaction("change link routing");
+      setStatus("已切換關聯線樣式", false);
+    });
+
+    document
+      .getElementById("fitButton")
+      .addEventListener("click", function() {
+        diagram.zoomToFit();
+      });
+
+    document
+      .getElementById("autoLayoutButton")
+      .addEventListener("click", autoLayout);
+
+    document
+      .getElementById("undoLayoutButton")
+      .addEventListener("click", undoLayout);
+
+    document
+      .getElementById("exportPngButton")
+      .addEventListener("click", exportPng);
+
+    document
+      .getElementById("exportSvgButton")
+      .addEventListener("click", exportSvg);
+
+    document
+      .getElementById("saveBrowserButton")
+      .addEventListener("click", function() {
+        saveToBrowser(true);
+      });
+
+    document
+      .getElementById("downloadButton")
+      .addEventListener("click", downloadJson);
+
+    document
+      .getElementById("resetButton")
+      .addEventListener("click", function() {
+        if (!window.confirm("確定清除目前修改並回到三張 Demo Table？")) {
+          return;
+        }
+
+        previousLocations = null;
+        searchInputElement.value = "";
+        searchResultCountElement.textContent = "";
+        localStorage.removeItem(STORAGE_KEY);
+        loadJson(JSON.stringify(DEFAULT_MODEL), true);
+        setStatus("已重設 Demo", false);
+      });
+
+    document
+      .getElementById("fileInput")
+      .addEventListener("change", function(event) {
+        const file = event.target.files[0];
+
+        if (!file) {
+          return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function() {
+          try {
+            loadJson(String(reader.result), true);
+          } catch (error) {
+            setStatus("載入失敗：" + error.message, true);
+          }
+        };
+
+        reader.onerror = function() {
+          setStatus("讀取檔案失敗", true);
+        };
+
+        reader.readAsText(file, "UTF-8");
+        event.target.value = "";
+      });
+
+    document.getElementById("sqlDialectSelect").addEventListener("change", function() {
+      updateSqlEditor();
+    });
+
+    document.getElementById("refreshSqlBtn").addEventListener("click", function() {
+      updateSqlEditor();
+      setStatus("已重新產生 SQL", false);
+    });
+
+    document.getElementById("copySqlButton").addEventListener("click", async function() {
+      try {
+        await navigator.clipboard.writeText(sqlEditorElement.value);
+        setStatus("SQL 腳本已複製", false);
+      } catch (error) {
+        sqlEditorElement.select();
+        document.execCommand("copy");
+        setStatus("SQL 腳本已複製", false);
+      }
+    });
+
+    document.getElementById("downloadSqlButton").addEventListener("click", function() {
+      const sqlText = sqlEditorElement.value;
+      const blob = new Blob([sqlText], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "er-model-schema.sql";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      setStatus("已下載 .sql 檔", false);
+    });
+
+    document
+      .getElementById("applyJsonButton")
+      .addEventListener("click", function() {
+        try {
+          loadJson(jsonEditorElement.value, true);
+        } catch (error) {
+          setStatus("JSON 錯誤：" + error.message, true);
+        }
+      });
+
+    document
+      .getElementById("copyJsonButton")
+      .addEventListener("click", async function() {
+        try {
+          await navigator.clipboard.writeText(
+            jsonEditorElement.value
+          );
+          setStatus("JSON 已複製", false);
+        } catch (error) {
+          jsonEditorElement.select();
+          document.execCommand("copy");
+          setStatus("JSON 已複製", false);
+        }
+      });
+
+    // 綁定側邊欄切換收合按鈕
+    const workspaceElement = document.querySelector(".workspace");
+    const toggleInspectorBtn = document.getElementById("toggleInspectorBtn");
+    const toggleSidebarTopBtn = document.getElementById("toggleSidebarTopBtn");
+    const toggleIcon = document.getElementById("toggleIcon");
+
+    function toggleInspector() {
+      const isCollapsed = workspaceElement.classList.toggle("collapsed");
+      if (isCollapsed) {
+        toggleIcon.innerHTML = '<polyline points="15 18 9 12 15 6"/>';
+        toggleInspectorBtn.setAttribute("title", "展開右側邊欄");
+      } else {
+        toggleIcon.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
+        toggleInspectorBtn.setAttribute("title", "收合右側邊欄");
+      }
+
+      window.setTimeout(function() {
+        diagram.requestUpdate();
+      }, 260);
+    }
+
+    if (toggleInspectorBtn) toggleInspectorBtn.addEventListener("click", toggleInspector);
+    if (toggleSidebarTopBtn) toggleSidebarTopBtn.addEventListener("click", toggleInspector);
+
+    // 綁定上方工具列收合按鈕
+    const appElement = document.querySelector(".app");
+    const toggleTopbarBtn = document.getElementById("toggleTopbarBtn");
+    const toggleTopbarIcon = document.getElementById("toggleTopbarIcon");
+
+    function toggleTopbar() {
+      const isCollapsed = appElement.classList.toggle("topbar-collapsed");
+      if (isCollapsed) {
+        toggleTopbarIcon.innerHTML = '<polyline points="6 9 12 15 18 9"/>';
+        toggleTopbarBtn.setAttribute("title", "展開上方工具列");
+      } else {
+        toggleTopbarIcon.innerHTML = '<polyline points="18 15 12 9 6 15"/>';
+        toggleTopbarBtn.setAttribute("title", "收合上方工具列");
+      }
+
+      window.setTimeout(function() {
+        diagram.requestUpdate();
+      }, 260);
+    }
+
+    if (toggleTopbarBtn) toggleTopbarBtn.addEventListener("click", toggleTopbar);
+
+    // 綁定小地圖收合/縮回/展開
+    const overviewElement = document.getElementById("overview");
+    const toggleOverviewBtn = document.getElementById("toggleOverviewBtn");
+    const closeOverviewBtn = document.getElementById("closeOverviewBtn");
+
+    function toggleOverview(event) {
+      if (event) event.stopPropagation();
+      const isCollapsed = overviewElement.classList.toggle("collapsed");
+      if (toggleOverviewBtn) {
+        toggleOverviewBtn.classList.toggle("active", !isCollapsed);
+      }
+      if (!isCollapsed) {
+        window.setTimeout(function() {
+          overview.requestUpdate();
+        }, 30);
+      }
+    }
+
+    function closeOverview(event) {
+      if (event) event.stopPropagation();
+      overviewElement.classList.add("collapsed");
+      if (toggleOverviewBtn) {
+        toggleOverviewBtn.classList.remove("active");
+      }
+    }
+
+    if (toggleOverviewBtn) toggleOverviewBtn.addEventListener("click", toggleOverview);
+    if (closeOverviewBtn) closeOverviewBtn.addEventListener("click", closeOverview);
+
+    /**
+     * 列印 HTML 圖表 (Print HTML Diagram)。
+     */
+    function printDiagram() {
+      diagram.zoomToFit();
+      window.setTimeout(function() {
+        window.print();
+      }, 100);
+    }
+
+    document
+      .getElementById("printButton")
+      .addEventListener("click", printDiagram);
+
+    // 全域鍵盤快捷鍵 (Ctrl+F 搜尋, Ctrl+S 儲存, Ctrl+P 列印, Delete 刪除選取 Table)
+    window.addEventListener("keydown", function(event) {
+      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+      const isEditingText = activeTag === "input" || activeTag === "textarea" || activeTag === "select";
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        searchInputElement.focus();
+        searchInputElement.select();
+      } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        saveToBrowser(true);
+      } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "p") {
+        event.preventDefault();
+        printDiagram();
+      } else if (event.key === "Delete" && !isEditingText) {
+        if (diagram.selection.first() instanceof go.Node) {
+          deleteTable();
+        }
+      }
+    });
+
+    /**
+     * 主題配色切換功能 (Theme Switcher: Dark, Light, Midnight)。
+     */
+    const themeSelectElement = document.getElementById("themeSelect");
+
+    function applyTheme(themeName) {
+      const validTheme = ["dark", "light", "midnight"].includes(themeName) ? themeName : "dark";
+      document.documentElement.setAttribute("data-theme", validTheme);
+      localStorage.setItem("gojs-er-editor-theme", validTheme);
+      if (themeSelectElement) themeSelectElement.value = validTheme;
+
+      if (validTheme === "light") {
+        diagram.div.style.background = "#f8fafc";
+      } else if (validTheme === "midnight") {
+        diagram.div.style.background = "#0f0c1e";
+      } else {
+        diagram.div.style.background = "#07101d";
+      }
+      diagram.requestUpdate();
+    }
+
+    if (themeSelectElement) {
+      themeSelectElement.addEventListener("change", function() {
+        applyTheme(this.value);
+      });
+    }
+
+    /**
+     * 啟動：優先載入瀏覽器保存內容。
+     */
+    const savedJson = localStorage.getItem(STORAGE_KEY);
+    const savedTheme = localStorage.getItem("gojs-er-editor-theme") || "dark";
+    applyTheme(savedTheme);
+
+    try {
+      loadJson(
+        savedJson || JSON.stringify(DEFAULT_MODEL),
+        true
+      );
+
+      if (savedJson) {
+        setStatus("已載入上次保存的位置與內容", false);
+      } else {
+        setStatus("已載入三張 Demo Table", false);
+      }
+    } catch (error) {
+      localStorage.removeItem(STORAGE_KEY);
+      loadJson(JSON.stringify(DEFAULT_MODEL), true);
+      setStatus("保存資料異常，已載入 Demo", true);
+    }
+  </script>
+</body>
+</html>
